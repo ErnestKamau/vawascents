@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'google' => [
+        // Comma-separated: include the iOS, Android, and Web OAuth client IDs
+        // from Google Cloud Console, since the ID token's `aud` varies by platform.
+        'client_ids' => array_filter(explode(',', env('GOOGLE_CLIENT_IDS', ''))),
+    ],
+
 ];
