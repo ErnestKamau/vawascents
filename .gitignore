@@ -1,0 +1,32 @@
+# Environment files and secrets
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.testing.example
+
+# Dependencies
+**/vendor/
+**/node_modules/
+
+# Expo / React Native
+**/.expo/
+**/dist/
+**/web-build/
+**/android/.gradle/
+**/ios/Pods/
+
+# Laravel generated files
+/backend/storage/*.key
+/backend/storage/logs/
+/backend/bootstrap/cache/*.php
+/backend/public/storage
+
+# Logs and temporary files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
