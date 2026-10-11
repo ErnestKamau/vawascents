@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { View, ScrollView, FlatList, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Menu, Bell, Sparkles, ArrowRight } from 'lucide-react-native';
+import { Menu, Bell, ArrowRight } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import { softWhite } from '@/design';
-import { Screen, Text, Avatar, SearchBar, GlassSurface, ProductCard, Skeleton, ImageCarousel, IconButton, StackedCards, SideDrawer } from '@/components/ui';
+import { Screen, Text, Avatar, SearchBar, ProductCard, Skeleton, ImageCarousel, IconButton, StackedCards, SideDrawer, MediaInfoCard } from '@/components/ui';
 import { CATEGORIES, MOCK_PRODUCTS } from '@/data/mockProducts';
 
 const PROMOS = [
@@ -26,12 +27,15 @@ const PROMOS = [
 export default function HomeScreen() {
   const theme = useAppTheme();
   const { user } = useAuth();
+  const toast = useToast();
   const [search, setSearch] = React.useState('');
   const [category, setCategory] = React.useState<(typeof CATEGORIES)[number]>('All');
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [featuredSaved, setFeaturedSaved] = useState(false);
   const featured = MOCK_PRODUCTS.slice(0, 3);
   const bestSellers = MOCK_PRODUCTS;
+  const spotlight = MOCK_PRODUCTS[2];
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 650);
@@ -121,29 +125,30 @@ export default function HomeScreen() {
           }}
         />
 
-        <Pressable onPress={() => router.push('/wallet' as any)}>
-          <GlassSurface level={3} borderRadius={theme.radius.xl}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: theme.spacing[5],
+        <View style={{ gap: theme.spacing[3] }}>
+          <Text variant="title">Spotlight</Text>
+          <View style={{ marginHorizontal: -theme.spacing[5] }}>
+            <MediaInfoCard
+              imageUri={spotlight.imageUri}
+              rating={spotlight.rating}
+              statusLabel="In stock"
+              title={spotlight.name}
+              subtitle={`${spotlight.brand} · ${spotlight.volumeMl} ml`}
+              price={spotlight.price}
+              primaryLabel="View"
+              height={280}
+              saved={featuredSaved}
+              onHeartPress={() => {
+                const next = !featuredSaved;
+                setFeaturedSaved(next);
+                if (next) toast.success('Added to wishlist', spotlight.name);
+                else toast.info('Removed from wishlist', spotlight.name);
               }}
-            >
-              <View style={{ gap: theme.spacing[1] }}>
-                <Text variant="overline" color="gold">
-                  WALLET
-                </Text>
-                <Text variant="h3">KES 0.00</Text>
-                <Text variant="caption" color="muted">
-                  Powered by Equity Pesalink
-                </Text>
-              </View>
-              <Sparkles size={28} color={theme.colors.gold} />
-            </View>
-          </GlassSurface>
-        </Pressable>
+              onPress={() => router.push(`/product/${spotlight.id}` as any)}
+              onPrimaryPress={() => router.push(`/product/${spotlight.id}` as any)}
+            />
+          </View>
+        </View>
 
         <View style={{ gap: theme.spacing[3] }}>
           <Text variant="title">Shop by category</Text>

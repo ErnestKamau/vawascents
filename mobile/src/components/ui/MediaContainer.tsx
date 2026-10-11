@@ -36,12 +36,18 @@ export function MediaContainer({ uri, source, aspectRatio = '1:1', borderRadius,
 
   const resolvedSource: ImageSourcePropType | undefined = source ?? (uri ? { uri } : undefined);
 
+  // On native, aspectRatio + an explicit height together can make Yoga derive
+  // width from the ratio instead of the percentage — so drop the ratio
+  // whenever a caller-supplied style sets a fixed height.
+  const flatOverride = StyleSheet.flatten(style) ?? {};
+  const hasExplicitHeight = flatOverride.height != null;
+
   return (
     <View
       style={[
         {
           width: '100%',
-          aspectRatio: ratio,
+          ...(hasExplicitHeight ? null : { aspectRatio: ratio }),
           borderRadius: rad,
           overflow: 'hidden',
           backgroundColor: theme.colors.skeleton,

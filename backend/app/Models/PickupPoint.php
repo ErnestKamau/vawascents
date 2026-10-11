@@ -17,8 +17,8 @@ class PickupPoint extends Model
     protected function casts(): array
     {
         return [
-            'lat' => 'decimal:7',
-            'lng' => 'decimal:7',
+            'lat' => 'float',
+            'lng' => 'float',
             'is_active' => 'boolean',
             'synced_at' => 'datetime',
         ];

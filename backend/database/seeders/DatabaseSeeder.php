@@ -21,5 +21,14 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        User::factory()->create([
+            'name' => 'VawaScents Admin',
+            'email' => 'admin@vawascents.test',
+            'role' => 'admin',
+            'phone_verified_at' => now(),
+        ]);
+
+        $this->call(ProductCatalogSeeder::class);
     }
 }

@@ -16,6 +16,8 @@ import 'react-native-reanimated';
 import { ThemeProvider as AuraThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { CartProvider } from '@/contexts/CartContext';
+import { ToastProvider } from '@/contexts/ToastContext';
+import { OrderProvider } from '@/contexts/OrderContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -49,11 +51,15 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuraThemeProvider>
-        <AuthProvider>
-          <CartProvider>
-            <RootNavigation />
-          </CartProvider>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <CartProvider>
+              <OrderProvider>
+                <RootNavigation />
+              </OrderProvider>
+            </CartProvider>
+          </AuthProvider>
+        </ToastProvider>
       </AuraThemeProvider>
     </SafeAreaProvider>
   );

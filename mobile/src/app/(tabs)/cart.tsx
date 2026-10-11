@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, FlatList } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,13 +6,54 @@ import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCart } from '@/contexts/CartContext';
-import { Screen, Text, Button, IconButton, MediaContainer, PriceText, Divider, Surface, GlassSurface, AnimatedIcon } from '@/components/ui';
+import { useToast } from '@/contexts/ToastContext';
+import { useOrders } from '@/contexts/OrderContext';
+import { Screen, Text, Button, IconButton, MediaContainer, PriceText, Divider, Surface, GlassSurface, AnimatedIcon, StatusSheet, StatusSheetState, PaymentConfirmSheet } from '@/components/ui';
 import { TAB_BAR } from '@/components/ui/tabBarTokens';
 
 export default function CartScreen() {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
-  const { lines, subtotal, itemCount, updateQuantity, remove } = useCart();
+  const toast = useToast();
+  const { createOrder, confirmPayment } = useOrders();
+  const { lines, subtotal, itemCount, updateQuantity, remove, add, clear } = useCart();
+  const [paymentConfirmVisible, setPaymentConfirmVisible] = useState(false);
+  const [checkoutState, setCheckoutState] = useState<StatusSheetState | null>(null);
+  const [placedOrderId, setPlacedOrderId] = useState<number | null>(null);
+
+  const handleRemove = (productId: string) => {
+    const line = lines.find((l) => l.product.id === productId);
+    if (!line) return;
+    remove(productId);
+    toast.info('Removed from cart', line.product.name, {
+      actionLabel: 'Undo',
+      onAction: () => add(line.product, line.quantity),
+    });
+  };
+
+  const handlePaymentConfirmed = async () => {
+    setPaymentConfirmVisible(false);
+    setCheckoutState('processing');
+    try {
+      // Order is created now (while cart lines still exist), then paid —
+      // both real backend calls, not a timer.
+      const order = await createOrder(lines);
+      await confirmPayment(order.id, 'wallet');
+      setPlacedOrderId(order.id);
+      setCheckoutState('success');
+    } catch {
+      setCheckoutState('error');
+    }
+  };
+
+  const closeCheckout = () => {
+    const wasSuccess = checkoutState === 'success';
+    setCheckoutState(null);
+    if (wasSuccess && placedOrderId != null) {
+      clear();
+      router.push(`/delivery/pickup-points?orderId=${placedOrderId}` as any);
+    }
+  };
 
   // The tab bar floats above the screen (position: absolute) rather than reserving
   // layout space, so sticky bottom content has to clear it manually.
@@ -84,7 +125,7 @@ export default function CartScreen() {
                   <View style={{ flex: 1 }} />
                   <IconButton
                     icon={<Trash2 size={16} color={theme.colors.error} />}
-                    onPress={() => remove(item.product.id)}
+                    onPress={() => handleRemove(item.product.id)}
                     accessibilityLabel="Remove item"
                     size={32}
                   />
@@ -117,10 +158,33 @@ export default function CartScreen() {
               <Text variant="title">Total</Text>
               <PriceText amount={subtotal} size="lg" />
             </View>
-            <Button title="Checkout" fullWidth onPress={() => {}} style={{ marginTop: theme.spacing[2] }} />
+            <Button title="Checkout" fullWidth onPress={() => setPaymentConfirmVisible(true)} style={{ marginTop: theme.spacing[2] }} />
           </View>
         </GlassSurface>
       </View>
+
+      <PaymentConfirmSheet
+        visible={paymentConfirmVisible}
+        amount={subtotal}
+        onConfirm={handlePaymentConfirmed}
+        onClose={() => setPaymentConfirmVisible(false)}
+      />
+
+      <StatusSheet
+        visible={checkoutState != null}
+        state={checkoutState ?? 'processing'}
+        title={checkoutState === 'success' ? 'Order placed!' : checkoutState === 'error' ? 'Checkout failed' : 'Placing your order…'}
+        subtitle={
+          checkoutState === 'success'
+            ? "We'll text you when it's on the way."
+            : checkoutState === 'error'
+              ? 'Something went wrong. Please try again.'
+              : 'Confirming your payment, one moment.'
+        }
+        actionLabel={checkoutState === 'success' ? 'View orders' : checkoutState === 'error' ? 'Try again' : undefined}
+        onAction={closeCheckout}
+        onClose={closeCheckout}
+      />
     </Screen>
   );
 }

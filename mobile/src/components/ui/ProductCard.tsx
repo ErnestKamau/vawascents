@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Heart } from 'lucide-react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { useToast } from '@/contexts/ToastContext';
 import { Text } from './Text';
 import { MediaContainer } from './MediaContainer';
 import { PriceText } from './PriceText';
@@ -22,8 +23,9 @@ type ProductCardProps = {
   onPress?: () => void;
 };
 
-function WishlistHeart({ size = 16 }: { size?: number }) {
+function WishlistHeart({ size = 16, name }: { size?: number; name: string }) {
   const theme = useAppTheme();
+  const toast = useToast();
   const [saved, setSaved] = useState(false);
   const scale = useSharedValue(1);
 
@@ -33,8 +35,11 @@ function WishlistHeart({ size = 16 }: { size?: number }) {
     <Pressable
       onPress={(e) => {
         e.stopPropagation?.();
-        setSaved((s) => !s);
+        const next = !saved;
+        setSaved(next);
         scale.value = withSequence(withTiming(1.3, { duration: 110 }), withSpring(1, theme.spring.snappy));
+        if (next) toast.success('Added to wishlist', name);
+        else toast.info('Removed from wishlist', name);
       }}
       hitSlop={8}
       style={{
@@ -118,7 +123,7 @@ export function ProductCard({
       <Surface variant="elevated" style={{ overflow: 'hidden' }} padding={2}>
         <View>
           <MediaContainer uri={imageUri} source={imageSource} aspectRatio="1:1" borderRadius={imageRadius} />
-          <WishlistHeart />
+          <WishlistHeart name={name} />
         </View>
         <View style={{ padding: theme.spacing[3], paddingTop: theme.spacing[2], gap: theme.spacing[1] }}>
           {brand && (

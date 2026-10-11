@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsurePhoneIsVerified;
+use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\VerifyDeliveryWebhookSignature;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
         $middleware->alias([
             'phone.verified' => EnsurePhoneIsVerified::class,
+            'admin' => EnsureUserIsAdmin::class,
             'delivery.webhook.signature' => VerifyDeliveryWebhookSignature::class,
         ]);
     })
