@@ -19,3 +19,8 @@ export * from './SegmentedControl';
 export * from './DateField';
 export * from './LottieIcon';
 export * from './AuthBackdrop';
+export * from './PasswordInput';
+export * from './ImageCarousel';
+export * from './AnimatedIcon';
+export * from './StackedCards';
+export * from './SideDrawer';

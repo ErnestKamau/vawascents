@@ -6,7 +6,7 @@ import { useAppTheme } from '@/contexts/ThemeContext';
 import { Text } from './Text';
 import { GlassSurface } from './GlassSurface';
 
-type InputProps = TextInputProps & {
+export type InputProps = TextInputProps & {
   label?: string;
   error?: string;
   helper?: string;

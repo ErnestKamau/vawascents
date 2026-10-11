@@ -1,11 +1,13 @@
 /**
  * Aura — Semantic Themes
- * auraLight / auraDark map semantic tokens → primitives.
+ * auraLight / auraDark (green, main app) and auraLightAuth / auraDarkAuth (violet,
+ * onboarding/auth/otp/unlock flow) map semantic tokens → primitives.
  * Components consume these — never raw hex.
  */
 
 import {
   violet,
+  green,
   orchid,
   gold,
   neutral,
@@ -27,6 +29,8 @@ import { duration, easing, spring, pressScale } from './tokens/motion';
 import { ElevationLevel, getElevationStyle } from './tokens/elevation';
 import { ViewStyle } from 'react-native';
 
+export type Brand = 'green' | 'violet';
+
 // ---------------------------------------------------------------------------
 // Glass recipe params per level
 // ---------------------------------------------------------------------------
@@ -40,7 +44,13 @@ export type GlassRecipe = {
   highlightColor: string;
 };
 
-function makeGlassRecipes(mode: 'light' | 'dark'): Record<GlassLevel, GlassRecipe> {
+/** Dark-glass hairline tint per brand: violet[200] for auth, green[200] for the main app. */
+const DARK_GLASS_BORDER_RGB: Record<Brand, string> = {
+  violet: '199,185,246',
+  green: '174,219,187',
+};
+
+function makeGlassRecipes(mode: 'light' | 'dark', brand: Brand): Record<GlassLevel, GlassRecipe> {
   if (mode === 'light') {
     return {
       0: { level: 0, blurIntensity: blur.glass0, tint: 'transparent', borderColor: 'transparent', borderAlpha: 0, highlightColor: 'transparent' },
@@ -51,14 +61,15 @@ function makeGlassRecipes(mode: 'light' | 'dark'): Record<GlassLevel, GlassRecip
       5: { level: 5, blurIntensity: blur.glass5, tint: 'rgba(248,246,251,0.82)', borderColor: 'rgba(255,255,255,0.7)', borderAlpha: 0.7, highlightColor: 'rgba(255,255,255,0.65)' },
     };
   }
-  // Dark: stronger glass, violet-tinted
+  // Dark: stronger glass, brand-tinted hairline border
+  const b = DARK_GLASS_BORDER_RGB[brand];
   return {
     0: { level: 0, blurIntensity: blur.glass0, tint: 'transparent', borderColor: 'transparent', borderAlpha: 0, highlightColor: 'transparent' },
-    1: { level: 1, blurIntensity: blur.glass1, tint: 'rgba(29,22,41,0.55)', borderColor: 'rgba(199,185,246,0.12)', borderAlpha: 0.12, highlightColor: 'rgba(255,255,255,0.06)' },
-    2: { level: 2, blurIntensity: blur.glass2, tint: 'rgba(29,22,41,0.65)', borderColor: 'rgba(199,185,246,0.16)', borderAlpha: 0.16, highlightColor: 'rgba(255,255,255,0.08)' },
-    3: { level: 3, blurIntensity: blur.glass3, tint: 'rgba(39,30,54,0.72)', borderColor: 'rgba(199,185,246,0.2)', borderAlpha: 0.2, highlightColor: 'rgba(255,255,255,0.1)' },
-    4: { level: 4, blurIntensity: blur.glass4, tint: 'rgba(39,30,54,0.8)', borderColor: 'rgba(199,185,246,0.24)', borderAlpha: 0.24, highlightColor: 'rgba(255,255,255,0.12)' },
-    5: { level: 5, blurIntensity: blur.glass5, tint: 'rgba(20,15,29,0.78)', borderColor: 'rgba(199,185,246,0.28)', borderAlpha: 0.28, highlightColor: 'rgba(255,255,255,0.14)' },
+    1: { level: 1, blurIntensity: blur.glass1, tint: 'rgba(29,22,41,0.55)', borderColor: `rgba(${b},0.12)`, borderAlpha: 0.12, highlightColor: 'rgba(255,255,255,0.06)' },
+    2: { level: 2, blurIntensity: blur.glass2, tint: 'rgba(29,22,41,0.65)', borderColor: `rgba(${b},0.16)`, borderAlpha: 0.16, highlightColor: 'rgba(255,255,255,0.08)' },
+    3: { level: 3, blurIntensity: blur.glass3, tint: 'rgba(39,30,54,0.72)', borderColor: `rgba(${b},0.2)`, borderAlpha: 0.2, highlightColor: 'rgba(255,255,255,0.1)' },
+    4: { level: 4, blurIntensity: blur.glass4, tint: 'rgba(39,30,54,0.8)', borderColor: `rgba(${b},0.24)`, borderAlpha: 0.24, highlightColor: 'rgba(255,255,255,0.12)' },
+    5: { level: 5, blurIntensity: blur.glass5, tint: 'rgba(20,15,29,0.78)', borderColor: `rgba(${b},0.28)`, borderAlpha: 0.28, highlightColor: 'rgba(255,255,255,0.14)' },
   };
 }
 
@@ -111,10 +122,11 @@ export type SemanticColors = {
   horizonEnd: string;
 };
 
-function buildLightColors(): SemanticColors {
+function buildLightColors(brand: Brand): SemanticColors {
+  const b = brand === 'green' ? green : violet;
   return {
-    primary: violet[500],
-    secondary: violet[700],
+    primary: b[500],
+    secondary: b[700],
     accent: orchid[500],
     background: neutral[50],
     surface: neutral[0],
@@ -125,9 +137,9 @@ function buildLightColors(): SemanticColors {
     success: '#1D9A6C',
     warning: amber[600],
     info: blue[600],
-    tint: violet[500],
+    tint: b[500],
     tabIconDefault: neutral[400],
-    tabIconSelected: violet[500],
+    tabIconSelected: b[500],
 
     backgroundSecondary: neutral[100],
     surfaceRaised: neutral[0],
@@ -136,10 +148,10 @@ function buildLightColors(): SemanticColors {
     textInverse: softWhite.primary,
     textOnPrimary: softWhite.primary,
     borderSubtle: neutral[100],
-    borderFocus: violet[500],
-    primaryHover: violet[600],
-    primaryPressed: violet[700],
-    primaryMuted: violet[100],
+    borderFocus: b[500],
+    primaryHover: b[600],
+    primaryPressed: b[700],
+    primaryMuted: b[100],
     successMuted: '#E3F6EE',
     warningMuted: amber[50],
     dangerMuted: red[50],
@@ -150,29 +162,31 @@ function buildLightColors(): SemanticColors {
     divider: neutral[200],
     gold: gold[500],
     goldMuted: gold[50],
-    horizonStart: orchid[50],
-    horizonMid: violet[50],
+    horizonStart: brand === 'green' ? green[50] : orchid[50],
+    horizonMid: brand === 'green' ? neutral[50] : violet[50],
     horizonEnd: neutral[50],
   };
 }
 
-function buildDarkColors(): SemanticColors {
+function buildDarkColors(brand: Brand): SemanticColors {
+  const b = brand === 'green' ? green : violet;
+  const borderRgb = DARK_GLASS_BORDER_RGB[brand];
   return {
-    primary: violet[400],
-    secondary: violet[300],
+    primary: b[400],
+    secondary: b[300],
     accent: orchid[400],
     background: neutral[950],
     surface: neutral[900],
     text: softWhite.primary,
     textSecondary: softWhite.secondary,
-    border: 'rgba(199,185,246,0.12)',
+    border: `rgba(${borderRgb},0.12)`,
     error: red[400],
     success: '#4ADE9B',
     warning: amber[400],
     info: blue[400],
-    tint: violet[400],
+    tint: b[400],
     tabIconDefault: softWhite.muted,
-    tabIconSelected: violet[300],
+    tabIconSelected: b[300],
 
     backgroundSecondary: neutral[900],
     surfaceRaised: neutral[850],
@@ -180,11 +194,11 @@ function buildDarkColors(): SemanticColors {
     textMuted: softWhite.muted,
     textInverse: neutral[950],
     textOnPrimary: neutral[950],
-    borderSubtle: 'rgba(199,185,246,0.08)',
-    borderFocus: violet[400],
-    primaryHover: violet[300],
-    primaryPressed: violet[500],
-    primaryMuted: 'rgba(109,63,224,0.2)',
+    borderSubtle: `rgba(${borderRgb},0.08)`,
+    borderFocus: b[400],
+    primaryHover: b[300],
+    primaryPressed: b[500],
+    primaryMuted: brand === 'green' ? 'rgba(46,128,84,0.2)' : 'rgba(109,63,224,0.2)',
     successMuted: 'rgba(74,222,155,0.18)',
     warningMuted: 'rgba(245,158,11,0.18)',
     dangerMuted: 'rgba(239,68,68,0.18)',
@@ -192,11 +206,11 @@ function buildDarkColors(): SemanticColors {
     skeleton: neutral[800],
     skeletonHighlight: neutral[700],
     overlay: 'rgba(0,0,0,0.6)',
-    divider: 'rgba(199,185,246,0.1)',
+    divider: `rgba(${borderRgb},0.1)`,
     gold: gold[400],
     goldMuted: 'rgba(221,169,53,0.16)',
-    horizonStart: orchid[950],
-    horizonMid: violet[950],
+    horizonStart: brand === 'green' ? green[950] : orchid[950],
+    horizonMid: brand === 'green' ? neutral[950] : violet[950],
     horizonEnd: neutral[950],
   };
 }
@@ -227,10 +241,10 @@ export type AppTheme = {
   getElevation: (level: ElevationLevel) => ViewStyle;
 };
 
-function buildTheme(mode: ThemeMode): AppTheme {
+function buildTheme(mode: ThemeMode, brand: Brand): AppTheme {
   return {
     mode,
-    colors: mode === 'light' ? buildLightColors() : buildDarkColors(),
+    colors: mode === 'light' ? buildLightColors(brand) : buildDarkColors(brand),
     spacing,
     radius,
     opacity,
@@ -244,13 +258,18 @@ function buildTheme(mode: ThemeMode): AppTheme {
     easing,
     spring,
     pressScale,
-    glass: makeGlassRecipes(mode),
+    glass: makeGlassRecipes(mode, brand),
     getElevation: (level) => getElevationStyle(level, mode),
   };
 }
 
-export const auraLight = buildTheme('light');
-export const auraDark = buildTheme('dark');
+/** Main app palette — green (Home, Product, Cart, Orders, Profile, Wallet). */
+export const auraLight = buildTheme('light', 'green');
+export const auraDark = buildTheme('dark', 'green');
+
+/** Auth-flow palette — violet (onboarding, auth, OTP, forgot-password, unlock). */
+export const auraLightAuth = buildTheme('light', 'violet');
+export const auraDarkAuth = buildTheme('dark', 'violet');
 
 export const Themes = {
   light: auraLight,

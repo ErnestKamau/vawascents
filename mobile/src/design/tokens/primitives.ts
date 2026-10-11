@@ -22,6 +22,21 @@ export const violet = {
   950: '#180B33',
 } as const;
 
+/** Brand green ramp (main app, non-auth screens) — anchors: 200 #AEDBBB, 400 #4CA86A, 500 #2E8054, 700 #1A4D32 */
+export const green = {
+  50: '#EEF8F1',
+  100: '#D7EEDD',
+  200: '#AEDBBB',
+  300: '#7FC494',
+  400: '#4CA86A',
+  500: '#2E8054',
+  600: '#246642',
+  700: '#1A4D32',
+  800: '#123824',
+  900: '#0B2518',
+  950: '#071A10',
+} as const;
+
 /** Accent orchid/magenta ramp — anchors: 200 #F0B8E8, 400 #D94FC4, 500 #BC27A4 */
 export const orchid = {
   50: '#FDF2FB',

@@ -95,7 +95,7 @@ export function Button({
         {
           height: heights[size],
           paddingHorizontal: paddings[size],
-          borderRadius: theme.radius.md,
+          borderRadius: theme.radius.pill,
           backgroundColor: variant === 'glass' ? 'transparent' : bg,
           borderWidth: variant === 'secondary' || variant === 'ghost' ? StyleSheet.hairlineWidth * 2 : 0,
           borderColor,

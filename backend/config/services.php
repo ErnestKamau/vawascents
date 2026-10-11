@@ -52,4 +52,19 @@ return [
         'base_url' => env('ADVANTA_BASE_URL', 'https://quicksms.advantasms.com'),
     ],
 
+    'delivery' => [
+        'driver' => env('DELIVERY_DRIVER', 'log'),
+    ],
+
+    'push' => [
+        'driver' => env('PUSH_DRIVER', 'log'),
+    ],
+
+    'sacco' => [
+        'base_url' => env('SACCO_DELIVERY_BASE_URL'),
+        'api_key' => env('SACCO_DELIVERY_API_KEY'),
+        'webhook_secret' => env('SACCO_DELIVERY_WEBHOOK_SECRET'),
+        'webhook_url' => env('SACCO_DELIVERY_CALLBACK_URL'),
+    ],
+
 ];

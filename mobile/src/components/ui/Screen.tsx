@@ -18,12 +18,12 @@ export function Screen({ children, horizon = true, edges = ['top', 'left', 'righ
 
   const content = (
     <View style={[styles.fill, { backgroundColor: theme.colors.background }, style]} {...rest}>
-      {horizon && (
+      {horizon && !isDark && (
         <LinearGradient
           colors={[theme.colors.horizonStart, theme.colors.horizonMid, theme.colors.horizonEnd]}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 0.5 }}
-          style={StyleSheet.absoluteFill}
+          style={[StyleSheet.absoluteFill, { opacity: 0.55 }]}
           pointerEvents="none"
         />
       )}

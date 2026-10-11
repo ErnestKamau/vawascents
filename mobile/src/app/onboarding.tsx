@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { ArrowRight } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAppTheme } from '@/contexts/ThemeContext';
+import { useAppTheme, AuthThemeProvider } from '@/contexts/ThemeContext';
 import { Screen, Text, Button, GlassSurface } from '@/components/ui';
 import { softWhite } from '@/design';
 
@@ -14,6 +14,14 @@ const { height } = Dimensions.get('window');
 const onImage = { color: softWhite.primary };
 
 export default function OnboardingScreen() {
+  return (
+    <AuthThemeProvider>
+      <OnboardingInner />
+    </AuthThemeProvider>
+  );
+}
+
+function OnboardingInner() {
   const theme = useAppTheme();
 
   const finish = async (mode: 'login' | 'register') => {

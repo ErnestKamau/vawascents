@@ -22,9 +22,9 @@ function resolvePadding(padding: SurfaceProps['padding'], spacing: Record<string
 }
 
 function resolveRadius(r: SurfaceProps['radius'], radiusTokens: Record<string, number>): number {
-  if (r === undefined) return radiusTokens.lg;
+  if (r === undefined) return radiusTokens.xl;
   if (typeof r === 'number') return r;
-  return radiusTokens[r] ?? radiusTokens.lg;
+  return radiusTokens[r] ?? radiusTokens.xl;
 }
 
 export function Surface({ variant = 'filled', glassLevel = 2, elevation = 'elv200', padding, radius, style, children, ...rest }: SurfaceProps) {

@@ -13,7 +13,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance, ColorSchemeName } from 'react-native';
-import { Themes, ThemeName, AppTheme, SemanticColors } from '@/design';
+import { Themes, ThemeName, AppTheme, SemanticColors, auraLightAuth, auraDarkAuth } from '@/design';
 
 interface ThemeContextType {
   /** Full token object (preferred) */
@@ -145,5 +145,22 @@ export const useTheme = (): ThemeContextType => {
   return context;
 };
 
-/** Convenience: full AppTheme tokens */
-export const useAppTheme = (): AppTheme => useTheme().theme;
+/**
+ * Onboarding/auth/OTP/forgot-password/unlock keep the violet brand palette while
+ * the rest of the app (inside this provider) is green — still following the
+ * user's light/dark mode choice, just with the auth-flow color variant.
+ */
+const AuthThemeContext = createContext<AppTheme | null>(null);
+
+export function AuthThemeProvider({ children }: { children: ReactNode }) {
+  const { themeName } = useTheme();
+  const authTheme = themeName === 'dark' ? auraDarkAuth : auraLightAuth;
+  return <AuthThemeContext.Provider value={authTheme}>{children}</AuthThemeContext.Provider>;
+}
+
+/** Convenience: full AppTheme tokens — resolves to the violet auth palette inside AuthThemeProvider. */
+export const useAppTheme = (): AppTheme => {
+  const authOverride = useContext(AuthThemeContext);
+  const { theme } = useTheme();
+  return authOverride ?? theme;
+};

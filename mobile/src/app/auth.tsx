@@ -3,7 +3,7 @@ import { View, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import { Mail, Lock, User as UserIcon, Phone } from 'lucide-react-native';
+import { Mail, User as UserIcon, Phone } from 'lucide-react-native';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/services/api';
@@ -11,6 +11,7 @@ import {
   Text,
   Button,
   Input,
+  PasswordInput,
   Divider,
   Checkbox,
   SegmentedControl,
@@ -137,7 +138,7 @@ export default function AuthScreen() {
   return (
     <AuthBackdrop
       showBack={false}
-      icon={<LottieIcon source="sparkle" size={76} />}
+      icon={isRegister ? undefined : <LottieIcon source="star-sparkle" size={150} />}
       title={isRegister ? 'Create account' : 'Welcome back'}
       subtitle={
         isRegister
@@ -200,6 +201,7 @@ export default function AuthScreen() {
           onChangeText={setIdentifier}
           error={errors.identifier}
           leftIcon={<Mail size={18} color={theme.colors.textMuted} />}
+          containerStyle={!isRegister ? { marginTop: 2 } : undefined}
         />
         {isRegister && (
           <>
@@ -226,22 +228,13 @@ export default function AuthScreen() {
             />
           </>
         )}
-        <Input
-          label="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          error={errors.password}
-          leftIcon={<Lock size={18} color={theme.colors.textMuted} />}
-        />
+        <PasswordInput label="Password" value={password} onChangeText={setPassword} error={errors.password} />
         {isRegister && (
-          <Input
+          <PasswordInput
             label="Confirm password"
-            secureTextEntry
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             error={errors.confirmPassword}
-            leftIcon={<Lock size={18} color={theme.colors.textMuted} />}
           />
         )}
         {!isRegister && (

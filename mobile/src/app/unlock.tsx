@@ -2,11 +2,19 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import { Fingerprint } from 'lucide-react-native';
-import { useAppTheme } from '@/contexts/ThemeContext';
+import { useAppTheme, AuthThemeProvider } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Screen, Text, Button } from '@/components/ui';
 
 export default function UnlockScreen() {
+  return (
+    <AuthThemeProvider>
+      <UnlockInner />
+    </AuthThemeProvider>
+  );
+}
+
+function UnlockInner() {
   const theme = useAppTheme();
   const { unlock, logout } = useAuth();
   const [error, setError] = useState<string | null>(null);

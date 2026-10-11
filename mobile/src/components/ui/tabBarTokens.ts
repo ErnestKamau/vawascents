@@ -1,15 +1,15 @@
 /** Floating bubble tab bar — shared layout tokens */
 export const TAB_BAR = {
-  BAR_H: 52,
-  CORNER_R: 26,
+  BAR_H: 80,
+  CORNER_R: 30,
   BUMP_W: 68,
   BUMP_RISE: 14,
   DOT: 5,
   ICON_SIZE: 22,
   ICON_LABEL_GAP: 3,
   LABEL_SIZE: 11,
-  CONTENT_TOP: 8,
-  PAD_BOTTOM: 8,
+  CONTENT_TOP: 16,
+  PAD_BOTTOM: 10,
   SIDE_INSET: 16,
 } as const;
 

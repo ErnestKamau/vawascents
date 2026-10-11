@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
-import { Phone, ShieldCheck, Lock } from 'lucide-react-native';
+import { Phone, ShieldCheck, KeyRound } from 'lucide-react-native';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { authApi, ApiError } from '@/services/api';
-import { Text, Button, Input, LottieIcon, AuthBackdrop } from '@/components/ui';
+import { Text, Button, Input, PasswordInput, LottieIcon, AnimatedIcon, AuthBackdrop } from '@/components/ui';
 
 type Step = 'phone' | 'reset' | 'done';
 
@@ -67,7 +67,7 @@ export default function ForgotPasswordScreen() {
 
   return (
     <AuthBackdrop
-      icon={<LottieIcon source="sparkle" size={76} />}
+      icon={<AnimatedIcon icon={<KeyRound size={40} color={theme.colors.textOnPrimary} strokeWidth={2.25} />} size={88} />}
       title={step === 'phone' ? 'Forgot password?' : 'Set a new password'}
       subtitle={
         step === 'phone'
@@ -102,20 +102,8 @@ export default function ForgotPasswordScreen() {
               onChangeText={setCode}
               leftIcon={<ShieldCheck size={18} color={theme.colors.textMuted} />}
             />
-            <Input
-              label="New password"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              leftIcon={<Lock size={18} color={theme.colors.textMuted} />}
-            />
-            <Input
-              label="Confirm new password"
-              secureTextEntry
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              leftIcon={<Lock size={18} color={theme.colors.textMuted} />}
-            />
+            <PasswordInput label="New password" value={password} onChangeText={setPassword} />
+            <PasswordInput label="Confirm new password" value={confirmPassword} onChangeText={setConfirmPassword} />
             {error && <Text variant="bodySmall" color="error">{error}</Text>}
             <Button title="Reset password" onPress={reset} loading={submitting} disabled={code.length !== 6} fullWidth style={{ marginTop: theme.spacing[2] }} />
           </>

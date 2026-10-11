@@ -16,7 +16,7 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 /** Floating pill tab bar — top edge curves up at the active tab (SVG silhouette). */
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const theme = useAppTheme();
-  const glass = theme.glass[3];
+  const glass = theme.glass[4];
   const insets = useSafeAreaInsets();
   const floatBottom = Math.max(insets.bottom, theme.spacing[3]);
 

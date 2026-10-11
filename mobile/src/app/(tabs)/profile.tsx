@@ -10,9 +10,9 @@ import {
   LogOut,
   ChevronRight,
 } from 'lucide-react-native';
-import { useAppTheme } from '@/contexts/ThemeContext';
+import { useAppTheme, useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Screen, Text, Avatar, Surface, Divider } from '@/components/ui';
+import { Screen, Text, Avatar, Surface, Divider, SegmentedControl } from '@/components/ui';
 
 type Row = {
   icon: React.ReactNode;
@@ -23,6 +23,8 @@ type Row = {
 export default function ProfileScreen() {
   const theme = useAppTheme();
   const { user, logout } = useAuth();
+  const { themeName, isSystemTheme, changeTheme, toggleSystemTheme } = useTheme();
+  const appearance = isSystemTheme ? 'system' : themeName;
 
   const rows: Row[] = [
     { icon: <Wallet size={20} color={theme.colors.primary} />, label: 'Wallet', onPress: () => router.push('/wallet' as any) },
@@ -49,6 +51,19 @@ export default function ProfileScreen() {
             </Text>
           </View>
         </View>
+
+        <Surface variant="elevated" padding={5} style={{ gap: theme.spacing[1] }}>
+          <SegmentedControl
+            label="Appearance"
+            value={appearance as 'light' | 'dark' | 'system'}
+            onChange={(v) => (v === 'system' ? toggleSystemTheme() : changeTheme(v))}
+            options={[
+              { value: 'light', label: 'Light' },
+              { value: 'dark', label: 'Dark' },
+              { value: 'system', label: 'System' },
+            ]}
+          />
+        </Surface>
 
         <Surface variant="elevated" padding={0} style={{ overflow: 'hidden' }}>
           {rows.map((row, i) => (

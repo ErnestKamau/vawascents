@@ -1,0 +1,10 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Single-color variant for Android monochrome adaptive icon (system applies tint) -->
+  <rect x="422" y="230" width="180" height="140" rx="28" fill="#000000" />
+  <rect x="482" y="366" width="60" height="44" fill="#000000" />
+  <rect x="352" y="406" width="320" height="418" rx="58" fill="#000000" />
+  <path
+    d="M 660 182 L 678 238 L 734 256 L 678 274 L 660 330 L 642 274 L 586 256 L 642 238 Z"
+    fill="#000000"
+  />
+</svg>
