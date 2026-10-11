@@ -18,8 +18,11 @@ class PasswordAuthController extends Controller
         $user = User::create([
             'name' => $request->string('name')->toString(),
             'email' => $request->string('email')->toString(),
-            'phone' => $request->filled('phone') ? $request->string('phone')->toString() : null,
+            'phone' => $request->string('phone')->toString(),
+            'date_of_birth' => $request->date('date_of_birth'),
+            'gender' => $request->string('gender')->toString(),
             'password' => $request->string('password')->toString(),
+            'terms_accepted_at' => now(),
         ]);
 
         $token = $user->createToken('mobile')->plainTextToken;

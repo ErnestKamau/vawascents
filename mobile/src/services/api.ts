@@ -66,6 +66,16 @@ export type AuthUser = {
   phone_verified_at: string | null;
 };
 
+export type RegisterPayload = {
+  name: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: 'male' | 'female' | 'other';
+  password: string;
+  termsAccepted: boolean;
+};
+
 type AuthResponse = { token: string; user: AuthUser; phone_verification_required: boolean };
 
 export const authApi = {
@@ -75,10 +85,19 @@ export const authApi = {
       body: JSON.stringify({ id_token: idToken }),
     }),
 
-  register: (name: string, email: string, phone: string | null, password: string) =>
+  register: (payload: RegisterPayload) =>
     request<AuthResponse>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, phone, password, password_confirmation: password }),
+      body: JSON.stringify({
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        date_of_birth: payload.dateOfBirth,
+        gender: payload.gender,
+        password: payload.password,
+        password_confirmation: payload.password,
+        terms_accepted: payload.termsAccepted,
+      }),
     }),
 
   login: (identifier: string, password: string) =>
@@ -91,6 +110,18 @@ export const authApi = {
     request<{ message: string }>('/auth/otp/send', {
       method: 'POST',
       body: JSON.stringify({ phone }),
+    }),
+
+  forgotPassword: (phone: string) =>
+    request<{ message: string }>('/auth/password/forgot', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    }),
+
+  resetPassword: (phone: string, code: string, password: string) =>
+    request<{ message: string }>('/auth/password/reset', {
+      method: 'POST',
+      body: JSON.stringify({ phone, code, password, password_confirmation: password }),
     }),
 
   verifyOtp: (phone: string, code: string) =>

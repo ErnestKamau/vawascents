@@ -1,20 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import { ArrowLeft, Mail, Lock, User as UserIcon, Phone } from 'lucide-react-native';
+import { Mail, Lock, User as UserIcon, Phone } from 'lucide-react-native';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/services/api';
-import { Screen, Text, Button, IconButton, Input, Divider } from '@/components/ui';
+import {
+  Text,
+  Button,
+  Input,
+  Divider,
+  Checkbox,
+  SegmentedControl,
+  DateField,
+  GoogleIcon,
+  LottieIcon,
+  AuthBackdrop,
+} from '@/components/ui';
 import { GOOGLE_CLIENT_IDS } from '@/config/env';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const googleNotConfigured = !GOOGLE_CLIENT_IDS.ios && !GOOGLE_CLIENT_IDS.android && !GOOGLE_CLIENT_IDS.web;
+// expo-auth-session needs the client ID for the *current* platform specifically —
+// the web client ID doesn't cover native iOS/Android requests.
+const googleNotConfigured = !(Platform.OS === 'ios'
+  ? GOOGLE_CLIENT_IDS.ios
+  : Platform.OS === 'android'
+    ? GOOGLE_CLIENT_IDS.android
+    : GOOGLE_CLIENT_IDS.web);
 
 type Mode = 'login' | 'register';
+type Gender = 'male' | 'female' | 'other';
+
+const thirteenYearsAgo = new Date();
+thirteenYearsAgo.setFullYear(thirteenYearsAgo.getFullYear() - 13);
 
 export default function AuthScreen() {
   const theme = useAppTheme();
@@ -25,7 +46,11 @@ export default function AuthScreen() {
   const [name, setName] = useState('');
   const [identifier, setIdentifier] = useState('');
   const [phone, setPhone] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
+  const [gender, setGender] = useState<Gender | null>(null);
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -58,12 +83,23 @@ export default function AuthScreen() {
     })();
   }, [googleResponse, signInWithGoogle, needsPhoneVerification]);
 
+  const switchMode = (next: Mode) => {
+    setErrors({});
+    setFormError(null);
+    setMode(next);
+  };
+
   const validate = () => {
     const next: Record<string, string> = {};
     if (isRegister) {
       if (!name.trim()) next.name = 'Enter your full name';
       if (!identifier.trim() || !identifier.includes('@')) next.identifier = 'Enter a valid email';
-      if (phone.trim() && !/^\+[1-9]\d{6,14}$/.test(phone.trim())) next.phone = 'Use the format +2547XXXXXXXX';
+      if (!phone.trim() || !/^\+[1-9]\d{6,14}$/.test(phone.trim())) next.phone = 'Use the format +2547XXXXXXXX';
+      if (!dateOfBirth) next.dateOfBirth = 'Select your date of birth';
+      else if (dateOfBirth > thirteenYearsAgo) next.dateOfBirth = 'You must be at least 13 years old';
+      if (!gender) next.gender = 'Select an option';
+      if (password !== confirmPassword) next.confirmPassword = 'Passwords do not match';
+      if (!termsAccepted) next.terms = 'You must accept the terms to continue';
     } else if (!identifier.trim()) {
       next.identifier = 'Enter your email or phone number';
     }
@@ -78,7 +114,15 @@ export default function AuthScreen() {
     setSubmitting(true);
     try {
       if (isRegister) {
-        await registerWithPassword(name, identifier, phone.trim() || null, password);
+        await registerWithPassword({
+          name,
+          email: identifier,
+          phone: phone.trim(),
+          dateOfBirth: dateOfBirth!.toISOString().slice(0, 10),
+          gender: gender!,
+          password,
+          termsAccepted,
+        });
       } else {
         await loginWithPassword(identifier, password);
       }
@@ -91,117 +135,154 @@ export default function AuthScreen() {
   };
 
   return (
-    <Screen edges={['top', 'left', 'right', 'bottom']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: theme.spacing[6], paddingBottom: theme.spacing[8] }}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: theme.spacing[4] }}>
-            <IconButton icon={<ArrowLeft size={20} color={theme.colors.text} />} onPress={() => router.back()} accessibilityLabel="Back" />
-          </View>
-
-          <View style={{ gap: theme.spacing[2], marginBottom: theme.spacing[7] }}>
-            <Text variant="h1">{isRegister ? 'Create account' : 'Welcome back'}</Text>
-            <Text variant="body" color="secondary">
-              {isRegister
-                ? 'Join VawaScents to shop fragrances and manage your wallet.'
-                : 'Log in with your email or phone number.'}
-            </Text>
-          </View>
-
-          <View style={{ gap: theme.spacing[4] }}>
-            {isRegister && (
-              <Input
-                label="Full name"
-                autoCapitalize="words"
-                value={name}
-                onChangeText={setName}
-                error={errors.name}
-                leftIcon={<UserIcon size={18} color={theme.colors.textMuted} />}
-              />
-            )}
-            <Input
-              label={isRegister ? 'Email' : 'Email or phone'}
-              autoCapitalize="none"
-              keyboardType={isRegister ? 'email-address' : 'default'}
-              value={identifier}
-              onChangeText={setIdentifier}
-              error={errors.identifier}
-              leftIcon={<Mail size={18} color={theme.colors.textMuted} />}
-            />
-            {isRegister && (
-              <Input
-                label="Phone (optional)"
-                keyboardType="phone-pad"
-                value={phone}
-                onChangeText={setPhone}
-                error={errors.phone}
-                helper="You can verify this later from your profile."
-                leftIcon={<Phone size={18} color={theme.colors.textMuted} />}
-              />
-            )}
-            <Input
-              label="Password"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              error={errors.password}
-              leftIcon={<Lock size={18} color={theme.colors.textMuted} />}
-            />
-          </View>
-
-          {formError && (
-            <Text variant="bodySmall" color="error" style={{ marginTop: theme.spacing[3] }}>
-              {formError}
-            </Text>
-          )}
-
-          <View style={{ marginTop: theme.spacing[6], gap: theme.spacing[4] }}>
-            <Button title={isRegister ? 'Create account' : 'Log in'} onPress={submit} loading={submitting} fullWidth />
-
-            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: theme.spacing[2] }}>
-              <Text variant="body" color="secondary">
-                {isRegister ? 'Already have an account?' : "Don't have an account?"}
-              </Text>
-              <Text
-                variant="body"
-                color="brand"
-                onPress={() => {
-                  setErrors({});
-                  setFormError(null);
-                  setMode(isRegister ? 'login' : 'register');
-                }}
-              >
-                {isRegister ? 'Log in' : 'Sign up'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing[4], marginVertical: theme.spacing[7] }}>
-            <Divider style={{ flex: 1 }} />
-            <Text variant="caption" color="muted">
+    <AuthBackdrop
+      showBack={false}
+      icon={<LottieIcon source="sparkle" size={76} />}
+      title={isRegister ? 'Create account' : 'Welcome back'}
+      subtitle={
+        isRegister
+          ? 'Join VawaScents to shop fragrances and manage your wallet.'
+          : 'Log in with your email or phone number.'
+      }
+      footer={
+        <View style={{ gap: theme.spacing[5] }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing[4] }}>
+            <Divider style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.3)' }} />
+            <Text variant="caption" style={{ color: 'rgba(255,255,255,0.75)' }}>
               OR
             </Text>
-            <Divider style={{ flex: 1 }} />
+            <Divider style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.3)' }} />
           </View>
 
           {googleNotConfigured ? (
-            <Text variant="bodySmall" color="muted" style={{ textAlign: 'center' }}>
+            <Text variant="bodySmall" style={{ color: 'rgba(255,255,255,0.7)', textAlign: 'center' }}>
               Google sign-in isn&apos;t configured yet — add EXPO_PUBLIC_GOOGLE_*_CLIENT_ID to your .env.
             </Text>
           ) : (
             <Button
               title="Continue with Google"
               variant="secondary"
+              leftIcon={<GoogleIcon size={18} />}
               onPress={() => promptGoogle()}
               disabled={!googleRequest}
               loading={googleSubmitting}
               fullWidth
             />
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Screen>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: theme.spacing[2] }}>
+            <Text variant="body" style={{ color: 'rgba(255,255,255,0.85)' }}>
+              {isRegister ? 'Already have an account?' : "Don't have an account?"}
+            </Text>
+            <Text variant="body" style={{ color: theme.colors.gold }} onPress={() => switchMode(isRegister ? 'login' : 'register')}>
+              {isRegister ? 'Log in' : 'Sign up'}
+            </Text>
+          </View>
+        </View>
+      }
+    >
+      <View style={{ gap: theme.spacing[4] }}>
+        {isRegister && (
+          <Input
+            label="Full name"
+            autoCapitalize="words"
+            value={name}
+            onChangeText={setName}
+            error={errors.name}
+            leftIcon={<UserIcon size={18} color={theme.colors.textMuted} />}
+          />
+        )}
+        <Input
+          label={isRegister ? 'Email' : 'Email or phone'}
+          autoCapitalize="none"
+          keyboardType={isRegister ? 'email-address' : 'default'}
+          value={identifier}
+          onChangeText={setIdentifier}
+          error={errors.identifier}
+          leftIcon={<Mail size={18} color={theme.colors.textMuted} />}
+        />
+        {isRegister && (
+          <>
+            <Input
+              label="Phone number"
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={setPhone}
+              error={errors.phone}
+              helper="Include your country code, e.g. +2547XXXXXXXX"
+              leftIcon={<Phone size={18} color={theme.colors.textMuted} />}
+            />
+            <DateField label="Date of birth" value={dateOfBirth} onChange={setDateOfBirth} error={errors.dateOfBirth} maximumDate={thirteenYearsAgo} />
+            <SegmentedControl
+              label="Gender"
+              value={gender}
+              onChange={setGender}
+              error={errors.gender}
+              options={[
+                { value: 'female', label: 'Female' },
+                { value: 'male', label: 'Male' },
+                { value: 'other', label: 'Other' },
+              ]}
+            />
+          </>
+        )}
+        <Input
+          label="Password"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+          error={errors.password}
+          leftIcon={<Lock size={18} color={theme.colors.textMuted} />}
+        />
+        {isRegister && (
+          <Input
+            label="Confirm password"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            error={errors.confirmPassword}
+            leftIcon={<Lock size={18} color={theme.colors.textMuted} />}
+          />
+        )}
+        {!isRegister && (
+          <Text variant="bodySmall" color="brand" style={{ textAlign: 'right' }} onPress={() => router.push('/forgot-password')}>
+            Forgot password?
+          </Text>
+        )}
+        {isRegister && (
+          <Checkbox
+            checked={termsAccepted}
+            onChange={setTermsAccepted}
+            error={errors.terms}
+            label={
+              <Text variant="bodySmall" color="secondary">
+                I agree to the{' '}
+                <Text variant="bodySmall" color="brand">
+                  Terms of Service
+                </Text>{' '}
+                and{' '}
+                <Text variant="bodySmall" color="brand">
+                  Privacy Policy
+                </Text>
+              </Text>
+            }
+          />
+        )}
+      </View>
+
+      {formError && (
+        <Text variant="bodySmall" color="error" style={{ marginTop: theme.spacing[3] }}>
+          {formError}
+        </Text>
+      )}
+
+      <Button
+        title={isRegister ? 'Create account' : 'Log in'}
+        onPress={submit}
+        loading={submitting}
+        fullWidth
+        style={{ marginTop: theme.spacing[6] }}
+      />
+    </AuthBackdrop>
   );
 }

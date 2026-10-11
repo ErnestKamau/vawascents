@@ -41,4 +41,15 @@ return [
         'client_ids' => array_filter(explode(',', env('GOOGLE_CLIENT_IDS', ''))),
     ],
 
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'log'),
+    ],
+
+    'advanta' => [
+        'api_key' => env('ADVANTA_API_KEY'),
+        'partner_id' => env('ADVANTA_PARTNER_ID'),
+        'shortcode' => env('ADVANTA_SHORTCODE'),
+        'base_url' => env('ADVANTA_BASE_URL', 'https://quicksms.advantasms.com'),
+    ],
+
 ];

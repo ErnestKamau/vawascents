@@ -7,29 +7,40 @@ use Tests\TestCase;
 
 class PasswordAuthTest extends TestCase
 {
-    public function test_a_user_can_register_with_email_and_password(): void
+    private function validRegisterPayload(array $overrides = []): array
     {
-        $response = $this->postJson('/api/auth/register', [
+        return array_merge([
             'name' => 'Ada Lovelace',
             'email' => 'ada@example.com',
+            'phone' => '+254712345678',
+            'date_of_birth' => '1990-01-01',
+            'gender' => 'female',
             'password' => 'password123',
             'password_confirmation' => 'password123',
-        ]);
+            'terms_accepted' => true,
+        ], $overrides);
+    }
+
+    public function test_a_user_can_register_with_email_and_password(): void
+    {
+        $response = $this->postJson('/api/auth/register', $this->validRegisterPayload());
 
         $response->assertCreated()->assertJsonStructure(['token', 'user', 'phone_verification_required']);
-        $this->assertDatabaseHas('users', ['email' => 'ada@example.com']);
+        $this->assertDatabaseHas('users', ['email' => 'ada@example.com', 'gender' => 'female']);
     }
 
     public function test_registering_with_a_taken_email_fails(): void
     {
         User::factory()->create(['email' => 'ada@example.com']);
 
-        $this->postJson('/api/auth/register', [
-            'name' => 'Ada Lovelace',
-            'email' => 'ada@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
-        ])->assertStatus(422);
+        $this->postJson('/api/auth/register', $this->validRegisterPayload(['phone' => '+254711111111']))
+            ->assertStatus(422);
+    }
+
+    public function test_registering_without_accepting_terms_fails(): void
+    {
+        $this->postJson('/api/auth/register', $this->validRegisterPayload(['terms_accepted' => false]))
+            ->assertStatus(422);
     }
 
     public function test_a_user_can_log_in_with_email_and_password(): void

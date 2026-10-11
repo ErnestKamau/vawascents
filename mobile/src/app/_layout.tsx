@@ -67,7 +67,7 @@ function RootNavigation() {
   useEffect(() => {
     if (loading) return;
     const inTabs = segments[0] === '(tabs)';
-    const inAuthFlow = segments[0] === 'onboarding' || segments[0] === 'auth';
+    const inAuthFlow = segments[0] === 'onboarding' || segments[0] === 'auth' || segments[0] === 'forgot-password';
     const inOtp = segments[0] === 'otp';
     const inUnlock = segments[0] === 'unlock';
 
@@ -88,6 +88,7 @@ function RootNavigation() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
       <Stack.Screen name="auth" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="forgot-password" />
       <Stack.Screen name="otp" options={{ gestureEnabled: false }} />
       <Stack.Screen name="unlock" options={{ gestureEnabled: false }} />
       <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />

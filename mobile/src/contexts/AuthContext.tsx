@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { authApi, AuthUser, getToken, setToken, ApiError } from '@/services/api';
+import { authApi, AuthUser, RegisterPayload, getToken, setToken, ApiError } from '@/services/api';
 
 type AuthContextType = {
   user: AuthUser | null;
@@ -11,7 +11,7 @@ type AuthContextType = {
   biometricsAvailable: boolean;
   loading: boolean;
   signInWithGoogle: (idToken: string) => Promise<void>;
-  registerWithPassword: (name: string, email: string, phone: string | null, password: string) => Promise<void>;
+  registerWithPassword: (payload: RegisterPayload) => Promise<void>;
   loginWithPassword: (identifier: string, password: string) => Promise<void>;
   sendOtp: (phone: string) => Promise<void>;
   verifyOtp: (phone: string, code: string) => Promise<void>;
@@ -84,8 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const registerWithPassword = useCallback(
-    async (name: string, email: string, phone: string | null, password: string) => {
-      const { token, user: nextUser, phone_verification_required } = await authApi.register(name, email, phone, password);
+    async (payload: RegisterPayload) => {
+      const { token, user: nextUser, phone_verification_required } = await authApi.register(payload);
       await setToken(token);
       applySession(nextUser, phone_verification_required);
     },
