@@ -5,7 +5,7 @@
  * only an offline *cache* so the Orders tab can paint instantly and survive a
  * dropped connection, not where orders actually live.
  */
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CartLine } from './CartContext';
 import { orderApi, OrderApi, PaymentMethod } from '@/services/orderApi';
@@ -29,7 +29,16 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<OrderApi[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Mirrors `orders` so async mutators (createOrder -> confirmPayment, fired
+  // back-to-back from the same event handler) always read the latest list
+  // instead of the one captured in their closure at last render.
+  const ordersRef = useRef<OrderApi[]>([]);
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
+
   const persist = useCallback((next: OrderApi[]) => {
+    ordersRef.current = next;
     setOrders(next);
     AsyncStorage.setItem(ORDERS_CACHE_KEY, JSON.stringify(next)).catch(() => {});
   }, []);
@@ -63,32 +72,32 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const createOrder = useCallback(
     async (lines: CartLine[]) => {
       const order = await orderApi.createOrder(lines.map((l) => ({ sku: l.product.id, quantity: l.quantity })));
-      persist([order, ...orders]);
+      persist([order, ...ordersRef.current]);
       return order;
     },
-    [orders, persist],
+    [persist],
   );
 
   const confirmPayment = useCallback(
     async (orderId: number, method: PaymentMethod) => {
       const order = await orderApi.confirmPayment(orderId, method);
-      persist(orders.map((o) => (o.id === orderId ? order : o)));
+      persist(ordersRef.current.map((o) => (o.id === orderId ? order : o)));
       return order;
     },
-    [orders, persist],
+    [persist],
   );
 
   const refreshOrder = useCallback(
     async (id: number) => {
       try {
         const order = await orderApi.getOrder(id);
-        persist(orders.map((o) => (o.id === id ? order : o)));
+        persist(ordersRef.current.map((o) => (o.id === id ? order : o)));
         return order;
       } catch {
         return getOrder(id);
       }
     },
-    [orders, persist, getOrder],
+    [persist, getOrder],
   );
 
   const value = useMemo(

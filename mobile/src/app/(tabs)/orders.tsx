@@ -82,7 +82,7 @@ export default function OrdersScreen() {
 
           return (
             <Pressable onPress={() => router.push(`/order/${order.id}` as any)}>
-              <Surface variant="elevated" style={{ gap: theme.spacing[3] }}>
+              <Surface variant="elevated" padding={4} style={{ gap: theme.spacing[3] }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing[3] }}>
                   <MediaContainer uri={thumbnail} aspectRatio="1:1" borderRadius={theme.radius.md} style={{ width: 56, height: 56 }} />
                   <View style={{ flex: 1, gap: 2 }}>

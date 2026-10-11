@@ -52,7 +52,6 @@ export function Surface({ variant = 'filled', glassLevel = 2, elevation = 'elv20
           borderWidth: variant === 'outlined' ? StyleSheet.hairlineWidth * 2 : 0,
           borderColor: theme.colors.border,
         },
-        variant === 'elevated' ? theme.getElevation(elevation) : null,
         style,
       ]}
       {...rest}
